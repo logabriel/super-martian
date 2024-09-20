@@ -28,6 +28,7 @@ class PlayState(BaseState):
     def enter(self, **enter_params: Dict[str, Any]) -> None:
         self.level = enter_params.get("level", 1)
         self.game_level = enter_params.get("game_level")
+
         if self.game_level is None:
             self.game_level = GameLevel(self.level)
             pygame.mixer.music.load(
@@ -40,6 +41,9 @@ class PlayState(BaseState):
         if self.player is None:
             self.player = Player(0, settings.VIRTUAL_HEIGHT - 66, self.game_level)
             self.player.change_state("idle")
+        else:
+            self.player.game_level = self.game_level
+            self.player.tilemap = self.tilemap
 
         self.camera = enter_params.get("camera")
 
@@ -65,6 +69,22 @@ class PlayState(BaseState):
             Timer.every(1, countdown_timer)
         else:
             Timer.resume()
+        
+        #set key-gold and block-gold in idle
+        for item in self.game_level.items:
+            if item.texture_id == "key-gold":
+                if item.frame_index == 0:
+                    self.keyItem = item
+                    self.keyItem.active = False
+                elif item.frame_index == 8:
+                    self.blockGoldItem = item
+                    self.blockGoldItem.active = False
+
+        self.score_next_level = 200 + self.level*28
+
+    def exit(self) -> None:
+        pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
 
     def update(self, dt: float) -> None:
         if self.player.is_dead:
@@ -93,6 +113,24 @@ class PlayState(BaseState):
             if self.player.collides(item):
                 item.on_collide(self.player)
                 item.on_consume(self.player)
+        
+        if self.player.score >= self.score_next_level:
+            self.game_level.winNextLevel = True
+
+            self.player.score = 0
+            
+            pygame.mixer.music.stop()
+            settings.SOUNDS["win"].stop()
+            settings.SOUNDS["win"].play()
+            
+            Timer.clear()
+            
+            for item in self.game_level.items:
+                item.active = False
+            
+            self.blockGoldItem.active = True
+
+            #self.state_machine.change("begin", player=self.player,level=self.level)
 
     def render(self, surface: pygame.Surface) -> None:
         world_surface = pygame.Surface((self.tilemap.width, self.tilemap.height))
