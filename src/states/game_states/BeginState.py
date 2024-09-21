@@ -22,6 +22,7 @@ class BeginState(BaseState):
             self.player = None
         else:
             self.level = 2
+            self.player.key = False
             self.player.x = 16
             self.player.y = settings.VIRTUAL_HEIGHT - 128
             self.player.vx = 0

@@ -27,4 +27,18 @@ CREATURES: Dict[int, Dict[str, Any]] = {
         "states": {"walk": creatures_states.SnailWalkState},
         "first_state": "walk",
     },
+    11: {
+        "texture_id": "creatures",
+        "walk_speed": 18,
+        "animation_defs": {"walk": {"frames": [11, 11], "interval": 0.18}},
+        "states": {"walk": creatures_states.SnailWalkState},
+        "first_state": "walk",
+    },
+    8: {
+        "texture_id": "creatures",
+        "walk_speed": 10,
+        "animation_defs": {"walk": {"frames": [8, 9], "interval": 0.18}},
+        "states": {"walk": creatures_states.SnailWalkState},
+        "first_state": "walk",
+    },
 }

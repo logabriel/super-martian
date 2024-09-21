@@ -98,7 +98,6 @@ class GameEntity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMi
             # Fix the entity position
             self.y = self.tilemap.to_y(i + 1) - self.height
             return True
-
         return False
 
     def handle_tilemap_collision_on_right(self) -> bool:

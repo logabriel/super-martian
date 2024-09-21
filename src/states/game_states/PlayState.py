@@ -22,6 +22,9 @@ from src.Camera import Camera
 from src.Clock import Clock
 from src.GameLevel import GameLevel
 from src.Player import Player
+from src.GameItem import GameItem
+from src.Tile import Tile
+from src.definitions import tiles
 
 
 class PlayState(BaseState):
@@ -74,11 +77,11 @@ class PlayState(BaseState):
         for item in self.game_level.items:
             if item.texture_id == "key-gold":
                 if item.frame_index == 0:
-                    self.keyItem = item
-                    self.keyItem.active = False
+                    self.itemKey = item
+                    self.itemKey.active = False
                 elif item.frame_index == 8:
-                    self.blockGoldItem = item
-                    self.blockGoldItem.active = False
+                    self.itemBLock = item
+                    self.itemBLock.active = False
 
         self.score_next_level = 200 + self.level*28
 
@@ -109,28 +112,43 @@ class PlayState(BaseState):
         for item in self.game_level.items:
             if not item.active or not item.collidable:
                 continue
-
+            
             if self.player.collides(item):
                 item.on_collide(self.player)
                 item.on_consume(self.player)
-        
+
         if self.player.score >= self.score_next_level:
+            self.player.score = 0
             self.game_level.winNextLevel = True
 
-            self.player.score = 0
-            
             pygame.mixer.music.stop()
             settings.SOUNDS["win"].stop()
             settings.SOUNDS["win"].play()
-            
+
             Timer.clear()
             
             for item in self.game_level.items:
-                item.active = False
+                if not item.frame_index == "Key-gold":
+                    item.active = False
             
-            self.blockGoldItem.active = True
+            self.itemBLock.active = True
+            self.itemKey.active = True
 
-            #self.state_machine.change("begin", player=self.player,level=self.level)
+            self.generate_item_block()
+        
+        if self.game_level.winNextLevel:
+            if self.itemBLock.collides_on(self.player, GameItem.BOTTOM) and self.player.collision_on_top():
+                if not self.itemKey.consumable:
+                    def arrive():
+                        self.itemKey.consumable = True
+                    Timer.tween(
+                        1,
+                        [ (self.itemKey, {"y": self.itemKey.y - 16})],
+                        on_finish=arrive,
+                    )
+
+        if self.player.key: #change next level
+            self.state_machine.change("begin", player=self.player,level=self.level)
 
     def render(self, surface: pygame.Surface) -> None:
         world_surface = pygame.Surface((self.tilemap.width, self.tilemap.height))
@@ -171,3 +189,9 @@ class PlayState(BaseState):
             )
         else:
             self.player.on_input(input_id, input_data)
+
+    #Generate a solid block in the first layer
+    def generate_item_block(self) -> None:
+        item_i = self.tilemap.to_i(self.itemBLock.y)
+        item_j = self.tilemap.to_j(self.itemBLock.x)          
+        self.tilemap.layers[0][item_i][item_j] = Tile(item_i, item_j, 16, 16, 41, dict(top=True, right=True, bottom=True, left=True))

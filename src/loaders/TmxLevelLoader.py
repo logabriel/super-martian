@@ -75,15 +75,15 @@ class TmxLevelLoader:
                         frame_index = value - self.first_ids["key-gold"]
                         
                         level.add_item(
-                        {
-                            "item_name": item_name,
-                            "frame_index": frame_index,
-                            "x": j * self.tilewidth,
-                            "y": i * self.tileheight,
-                            "width": self.tilewidth,
-                            "height": self.tileheight,
-                        }
-                    )
+                            {
+                                "item_name": item_name,
+                                "frame_index": frame_index,
+                                "x": j * self.tilewidth,
+                                "y": i * self.tileheight,
+                                "width": self.tilewidth,
+                                "height": self.tileheight,
+                            }
+                        )
                     else:
                         frame_index = value - self.first_ids["tiles"]
                         level.add_item(
